@@ -9,10 +9,11 @@ import Text.Read (readMaybe)
 -- parse :: String -> Maybe Request
 -- parse request =
 
+-- | Attempt to parse the request type from the string
 parseType :: String -> Maybe RequestType
 parseType = readMaybe
 
-data RequestType = GET | POST deriving (Show, Enum, Read)
+data RequestType = GET | POST deriving (Show, Read)
 data Request = Request
     {
         requestType :: RequestType,
