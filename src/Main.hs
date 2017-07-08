@@ -4,4 +4,4 @@ where
 import Http.Headers
 
 main = do
-    putStrLn "hi there"
+    putStrLn $ show $ map parseType ["GET", "POST", "wrong"]

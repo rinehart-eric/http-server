@@ -1,9 +1,18 @@
-module Http.Headers
+module Http.Headers (
+    parseType
+    )
 where
 
-import Data.Map as M
+import qualified Data.Map as M
+import Text.Read (readMaybe)
 
-data RequestType = GET | POST deriving (Show)
+-- parse :: String -> Maybe Request
+-- parse request =
+
+parseType :: String -> Maybe RequestType
+parseType = readMaybe
+
+data RequestType = GET | POST deriving (Show, Enum, Read)
 data Request = Request
     {
         requestType :: RequestType,
