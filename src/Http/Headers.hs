@@ -1,6 +1,7 @@
 module Http.Headers (
     parseType,
-    RequestType(..)
+    RequestType(..),
+    Request(..)
     )
 where
 
