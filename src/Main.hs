@@ -1,36 +1,40 @@
 module Main
 where
 
+import Control.Applicative
+import Data.Attoparsec.ByteString.Char8
+import Data.ByteString.Char8 (pack, unpack)
+import qualified Data.ByteString as B
+import Data.Word
 import Http.Headers
-import Text.Parsec
-import Control.Applicative (liftA)
 
-eitherToMaybe :: Either a b -> Maybe b
-eitherToMaybe v = case v of
-    Left _ -> Nothing
-    Right m -> Just m
-
-parseHeader :: String -> Maybe [String]
-parseHeader header = eitherToMaybe $ parse headerParser "" header
-
-headerParser :: Parsec String () [String]
+headerParser :: Parser [String]
 headerParser = do
-        reqType <- many1 letter
-        spaces
-        reqPath <- many1 validURI
-        spaces
-        httpVersion <- (++) <$> string "HTTP/" <*> versionNumber
-        newline
+        reqType <- typeParser
+        space
+        reqPath <- urlParser
+        space
+        httpVersion <- versionParser
+        endOfLine
         return [reqType, reqPath, httpVersion]
 
-validURI :: Parsec String () Char
-validURI = alphaNum <|> oneOf "-._~:/?#[]@!$&'()*+,;=%"
+typeParser :: Parser String
+typeParser = many1 letter_iso8859_15
 
-versionNumber :: Parsec String () [Char]
-versionNumber = do
+urlParser :: Parser String
+urlParser = do
+        url <- Data.Attoparsec.ByteString.Char8.takeWhile urlCharPred
+        return $ unpack url
+
+urlCharPred :: Char -> Bool
+urlCharPred c = or [p c | p <- [isAlpha_iso8859_15, isDigit, inClass "-._~:/?#][@!$&'()*+,;=%"]]
+
+versionParser :: Parser String
+versionParser = do
+        string $ pack "HTTP/"
         major <- many1 digit
         remainder <- many ((:) <$> char '.' <*> many1 digit)
-        return $ major ++ concat remainder
+        return $ "HTTP/" ++ major ++ concat remainder
 
 main = do
     putStrLn $ show $ map parseType ["GET", "POST", "wrong"]
