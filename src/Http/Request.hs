@@ -8,6 +8,7 @@ where
 import Control.Applicative
 import Data.Attoparsec.ByteString.Char8
 import qualified Data.Attoparsec.ByteString.Char8 as A (takeWhile)
+import Data.ByteString.Builder
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map.Strict as Map
 
@@ -77,10 +78,16 @@ bodyParser = do
         body <- takeByteString
         return $ B.unpack body
 
+-- encodeRequest :: Request -> B.ByteString
+-- encodeRequest = toLazyByteString . renderRequest
+--
+-- renderRequest :: Request -> Builder
+-- renderRequest req =
+
 -- | HTTP request type
 data RequestType = GET | POST deriving (Show, Read)
 
--- | Parsed HTTP request data
+-- | HTTP request data
 data Request = Request
     { requestType    :: RequestType,
       requestPath    :: String,
