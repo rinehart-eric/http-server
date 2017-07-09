@@ -78,12 +78,6 @@ bodyParser = do
         body <- takeByteString
         return $ B.unpack body
 
--- encodeRequest :: Request -> B.ByteString
--- encodeRequest = toLazyByteString . renderRequest
---
--- renderRequest :: Request -> Builder
--- renderRequest req =
-
 -- | HTTP request type
 data RequestType = GET | POST deriving (Show, Read)
 
