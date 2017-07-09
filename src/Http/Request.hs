@@ -27,13 +27,12 @@ requestParser = do
         space
         httpVersion <- versionParser
         endOfLine
-        return Request {
-            requestType = reqType,
-            requestPath = reqPath,
-            requestVersion = httpVersion,
-            requestHeaders = Map.empty,
-            requestBody = Nothing
-            }
+        return Request
+            { requestType = reqType,
+              requestPath = reqPath,
+              requestVersion = httpVersion,
+              requestHeaders = Map.empty,
+              requestBody = Nothing }
 
 typeParser :: Parser RequestType
 typeParser = do
@@ -57,10 +56,9 @@ versionParser = do
 
 data RequestType = GET | POST deriving (Show, Read)
 data Request = Request
-    {
-        requestType :: RequestType,
-        requestPath :: String,
-        requestVersion :: String,
-        requestHeaders :: Map.Map String String,
-        requestBody :: Maybe String
+    { requestType    :: RequestType,
+      requestPath    :: String,
+      requestVersion :: String,
+      requestHeaders :: Map.Map String String,
+      requestBody    :: Maybe String
     } deriving (Show)
