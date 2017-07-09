@@ -2,7 +2,6 @@ module Http.Request (
     parseRequest,
     RequestType(..),
     Request(..),
-    headersParser
     )
 where
 
