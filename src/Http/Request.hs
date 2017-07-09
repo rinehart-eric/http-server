@@ -1,7 +1,8 @@
 module Http.Request (
     parseRequest,
     RequestType(..),
-    Request(..)
+    Request(..),
+    headersParser
     )
 where
 
@@ -16,8 +17,9 @@ parseRequest :: B.ByteString -> Maybe Request
 parseRequest = resultToMaybe . parse requestParser
 
 resultToMaybe :: Result a -> Maybe a
-resultToMaybe (Done _ a) = Just a
-resultToMaybe _          = Nothing
+resultToMaybe (Done _ a)  = Just a
+resultToMaybe (Partial f) = resultToMaybe $ f B.empty
+resultToMaybe _           = Nothing
 
 requestParser :: Parser Request
 requestParser = do
@@ -26,13 +28,14 @@ requestParser = do
         reqPath <- urlParser
         space
         httpVersion <- versionParser
-        endOfLine
+        headers <- headersParser
+        body <- option Nothing (Just <$> bodyParser)
         return Request
             { requestType    = reqType,
               requestPath    = reqPath,
               requestVersion = httpVersion,
-              requestHeaders = Map.empty,
-              requestBody    = Nothing }
+              requestHeaders = headers,
+              requestBody    = body }
 
 typeParser :: Parser RequestType
 typeParser = do
@@ -45,7 +48,7 @@ urlParser = do
         return $ B.unpack urlBytes
 
 urlCharPred :: Char -> Bool
-urlCharPred c = or [p c | p <- [isAlpha_iso8859_15, isDigit, inClass "-._~:/?#][@!$&'()*+,;=%"]]
+urlCharPred = inClass "a-zA-Z0-9-._~:/?#][@!$&'()*+,;=%"
 
 versionParser :: Parser String
 versionParser = do
@@ -53,6 +56,27 @@ versionParser = do
         major <- many1 digit
         remainder <- many ((:) <$> char '.' <*> many1 digit)
         return $ major ++ concat remainder
+
+headersParser :: Parser (Map.Map String String)
+headersParser = do
+        lines <- many' headerLineParser
+        return $ Map.fromList lines
+
+headerLineParser :: Parser (String, String)
+headerLineParser = do
+        endOfLine
+        key <- A.takeWhile $ inClass "a-zA-Z-"
+        char ':'
+        A.takeWhile isSpace
+        value <- takeTill $ inClass "\r\n"
+        return (B.unpack key, B.unpack value)
+
+bodyParser :: Parser String
+bodyParser = do
+        endOfLine
+        endOfLine
+        body <- takeByteString
+        return $ B.unpack body
 
 -- | HTTP request type
 data RequestType = GET | POST deriving (Show, Read)
