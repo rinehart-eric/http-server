@@ -1,16 +1,10 @@
 module Http.Headers (
-    parseType,
     RequestType(..),
     Request(..)
     )
 where
 
-import qualified Data.Map as M
-import Text.Read (readMaybe)
-
--- | Attempt to parse the request type from the string
-parseType :: String -> Maybe RequestType
-parseType = readMaybe
+import qualified Data.Map.Strict as Map
 
 data RequestType = GET | POST deriving (Show, Read)
 data Request = Request
@@ -18,6 +12,6 @@ data Request = Request
         requestType :: RequestType,
         requestPath :: String,
         requestVersion :: String,
-        requestHeaders :: M.Map String String,
+        requestHeaders :: Map.Map String String,
         requestBody :: Maybe String
     } deriving (Show)
