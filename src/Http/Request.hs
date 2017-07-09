@@ -49,7 +49,7 @@ urlCharPred c = or [p c | p <- [isAlpha_iso8859_15, isDigit, inClass "-._~:/?#][
 
 versionParser :: Parser String
 versionParser = do
-        string . B.pack $ "HTTP/"
+        string $ B.pack "HTTP/"
         major <- many1 digit
         remainder <- many ((:) <$> char '.' <*> many1 digit)
         return $ major ++ concat remainder
