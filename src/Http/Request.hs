@@ -28,11 +28,12 @@ requestParser = do
         httpVersion <- versionParser
         endOfLine
         return Request {
-                requestType = reqType,
-                requestPath = reqPath,
-                requestVersion = httpVersion,
-                requestHeaders = Map.empty,
-                requestBody = Nothing }
+            requestType = reqType,
+            requestPath = reqPath,
+            requestVersion = httpVersion,
+            requestHeaders = Map.empty,
+            requestBody = Nothing
+            }
 
 typeParser :: Parser RequestType
 typeParser = do
