@@ -25,17 +25,21 @@ headerParser = do
                 requestBody = Nothing }
 
 typeParser :: Parser RequestType
-typeParser = many1 letter_iso8859_15 >>= return . read
+typeParser = do
+        reqType <- many1 letter_iso8859_15
+        return $ read reqType
 
 urlParser :: Parser String
-urlParser = A.takeWhile urlCharPred >>= return . B.unpack
+urlParser = do
+        urlBytes <- A.takeWhile urlCharPred
+        return $ B.unpack urlBytes
 
 urlCharPred :: Char -> Bool
 urlCharPred c = or [p c | p <- [isAlpha_iso8859_15, isDigit, inClass "-._~:/?#][@!$&'()*+,;=%"]]
 
 versionParser :: Parser String
 versionParser = do
-        string $ B.pack "HTTP/"
+        string . B.pack $ "HTTP/"
         major <- many1 digit
         remainder <- many ((:) <$> char '.' <*> many1 digit)
         return $ major ++ concat remainder
