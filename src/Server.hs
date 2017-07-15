@@ -1,5 +1,8 @@
 module Server(
-    runServer
+    runServer,
+    HandlerChain(..),
+    get,
+    post
     )
 where
 
@@ -12,27 +15,35 @@ import Http.Response
 import Network.Simple.TCP
 import Text.Regex
 
-runServer :: MonadIO m => String -> m ()
-runServer port = serve (Host "127.0.0.1") port handleConnection
+runServer :: MonadIO m => String -> HandlerChain -> m ()
+runServer port handlers = serve (Host "127.0.0.1") port (handleConnection handlers)
 
-handleConnection :: (Socket, SockAddr) -> IO ()
-handleConnection (socket, addr) = do
+handleConnection :: HandlerChain -> (Socket, SockAddr) -> IO ()
+handleConnection handlers (socket, addr) = do
         reqStr <- recv socket 65536
         let request = reqStr >>= parseRequest
             response = case request of
-                Just r -> notFoundHandler r
+                Just r  -> handle handlers r
                 Nothing -> emptyResponse 400
         send socket . toStrict . encodeResponse $ response
 
 type RequestHandler = (Request -> Response)
+type PatternHandler = (Request -> Maybe Response)
+type HandlerChain = [PatternHandler]
 
-get :: String -> RequestHandler -> (Request -> Maybe Response)
+handle :: HandlerChain -> Request -> Response
+handle (h:hs) req = case h req of
+        Just r  -> r
+        Nothing -> handle hs req
+handle []     req = notFoundHandler req
+
+get :: String -> RequestHandler -> PatternHandler
 get = handleType GET
 
-post :: String -> RequestHandler -> (Request -> Maybe Response)
+post :: String -> RequestHandler -> PatternHandler
 post = handleType POST
 
-handleType :: RequestType -> String -> RequestHandler -> (Request -> Maybe Response)
+handleType :: RequestType -> String -> RequestHandler -> PatternHandler
 handleType reqType path handler = (\req ->
         if requestType req == reqType && requestPath req == path
         then Just $ handler req
