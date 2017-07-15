@@ -18,30 +18,18 @@ runServer port = serve (Host "127.0.0.1") port handleConnection
 handleConnection :: (Socket, SockAddr) -> IO ()
 handleConnection (socket, addr) = do
         reqStr <- recv socket 65536
-        do case reqStr of
-            Just r -> parseRequest r
-            Nothing -> return ()
-        send socket . toStrict . encodeResponse . notFoundHandler $ request
-
-handleRecv :: Maybe B.ByteString -> IO (Maybe Request)
-handleRecv =
-
-type RequestHandler = (RequestType, Regex) -> (Request -> Response)
-instance Monoid RequestHandler where
-        mempty       = (_, _) -> notFoundHandler
-        mappend r rs = (t, x) -> 
-
-testHandler :: RequestType
-
-get :: Regex -> (Request -> Response) -> RequestHandler
-get r h = (GET, r, h)
-
-post :: Regex -> (Request -> Response) -> RequestHandler
-post r h = (POST, r, h)
+        let request = reqStr >>= parseRequest
+            response = case request of
+                Just r -> notFoundHandler r
+                Nothing -> emptyResponse 400
+        send socket . toStrict . encodeResponse $ response
 
 notFoundHandler :: Request -> Response
-notFoundHandler _ = Response {
+notFoundHandler _ = emptyResponse 404
+
+emptyResponse :: Int -> Response
+emptyResponse s = Response {
         httpVersion = "1.1",
-        statusCode = 404,
+        statusCode = s,
         responseHeaders = Map.empty,
         responseBody = Nothing }
