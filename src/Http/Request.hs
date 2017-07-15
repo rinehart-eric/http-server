@@ -79,7 +79,7 @@ bodyParser = do
         return $ B.unpack body
 
 -- | HTTP request type
-data RequestType = GET | POST deriving (Show, Read)
+data RequestType = GET | POST deriving (Show, Read, Eq)
 
 -- | HTTP request data
 data Request = Request

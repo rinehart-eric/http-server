@@ -24,6 +24,20 @@ handleConnection (socket, addr) = do
                 Nothing -> emptyResponse 400
         send socket . toStrict . encodeResponse $ response
 
+type RequestHandler = (Request -> Response)
+
+get :: String -> RequestHandler -> (Request -> Maybe Response)
+get = handleType GET
+
+post :: String -> RequestHandler -> (Request -> Maybe Response)
+post = handleType POST
+
+handleType :: RequestType -> String -> RequestHandler -> (Request -> Maybe Response)
+handleType reqType path handler = (\req ->
+        if requestType req == reqType && requestPath req == path
+        then Just $ handler req
+        else Nothing)
+
 notFoundHandler :: Request -> Response
 notFoundHandler _ = emptyResponse 404
 
