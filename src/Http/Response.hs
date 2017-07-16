@@ -14,7 +14,7 @@ encodeResponse = toLazyByteString . renderResponse
 
 renderResponse :: Response -> Builder
 renderResponse (Response v c h b) = renderStartingLine v c
-        <> (renderHeaders $ Map.toList h) <> renderBody b
+        <> (renderHeaders $ Map.toList h) <> renderBody b <> stringUtf8 "\r\n\r\n"
 
 renderStartingLine :: String -> Int -> Builder
 renderStartingLine v c = stringUtf8 "HTTP/" <> stringUtf8 v <> charUtf8 ' '

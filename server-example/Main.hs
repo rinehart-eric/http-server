@@ -14,6 +14,19 @@ responseMain = print . encodeResponse $ Response
       responseHeaders = Map.fromList [("User-Agent", "Me"), ("Location", "Here")],
       responseBody    = Just "This is the\nbody okay\nfriend"
     }
-serverMain = do runServer "8000"
+serverMain = runServer "8000" defaultHandler
 
 main = serverMain
+
+defaultHandler :: HandlerChain
+defaultHandler = [
+        get "\\/(\\w+)" simpleResponse,
+        get "\\/(\\w+)\\/(\\d+)" simpleResponse
+        ]
+
+simpleResponse :: RequestHandler
+simpleResponse req groups = Response {
+        httpVersion = "1.1",
+        statusCode = 200,
+        responseHeaders = Map.empty,
+        responseBody = Just $ concat groups }
