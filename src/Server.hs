@@ -1,19 +1,24 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Server(
     runServer,
     HandlerChain(..),
+    RequestHandler(..),
     get,
     post
     )
 where
 
+import Control.Monad (when)
 import Control.Monad.IO.Class
 import qualified Data.ByteString as B
 import Data.ByteString.Lazy (toStrict)
 import qualified Data.Map as Map
+import Data.Maybe
 import Http.Request
 import Http.Response
 import Network.Simple.TCP
-import Text.Regex
+import Text.Regex.TDFA
 
 runServer :: MonadIO m => String -> HandlerChain -> m ()
 runServer port handlers = serve (Host "127.0.0.1") port (handleConnection handlers)
@@ -25,9 +30,10 @@ handleConnection handlers (socket, addr) = do
             response = case request of
                 Just r  -> handle handlers r
                 Nothing -> emptyResponse 400
+        when (isJust request) . putStrLn . ("Received request for "++) . requestPath $ fromJust request
         send socket . toStrict . encodeResponse $ response
 
-type RequestHandler = (Request -> Response)
+type RequestHandler = (Request -> [String] -> Response)
 type PatternHandler = (Request -> Maybe Response)
 type HandlerChain = [PatternHandler]
 
@@ -44,10 +50,19 @@ post :: String -> RequestHandler -> PatternHandler
 post = handleType POST
 
 handleType :: RequestType -> String -> RequestHandler -> PatternHandler
-handleType reqType path handler = (\req ->
-        if requestType req == reqType && requestPath req == path
-        then Just $ handler req
+handleType reqType pathRegex handler = (\req ->
+        if requestType req == reqType
+        then case matchFullPath pathRegex $ requestPath req of
+                Just groups -> Just $ handler req groups
+                Nothing     -> Nothing
         else Nothing)
+
+matchFullPath :: String -> String -> Maybe [String]
+matchFullPath regexString reqPath =
+        let (b, _, a, g)::(String, String, String, [String]) = reqPath =~ regexString
+        in if null b && null a
+            then Just g
+            else Nothing
 
 notFoundHandler :: Request -> Response
 notFoundHandler _ = emptyResponse 404

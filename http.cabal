@@ -22,7 +22,7 @@ library
                        bytestring ==0.10.6.0,
                        network-simple ==0.4.0.5,
                        transformers ==0.4.2.0,
-                       regex-compat ==0.95.1
+                       regex-tdfa ==1.2.2
   hs-source-dirs:      src
   exposed-modules:     Http.Request
                        Http.Response

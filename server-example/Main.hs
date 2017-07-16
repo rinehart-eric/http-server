@@ -19,11 +19,14 @@ serverMain = runServer "8000" defaultHandler
 main = serverMain
 
 defaultHandler :: HandlerChain
-defaultHandler = [get "/" (\_ -> simpleResponse "GET /")]
+defaultHandler = [
+        get "\\/(\\w+)" simpleResponse,
+        get "\\/(\\w+)\\/(\\d+)" simpleResponse
+        ]
 
-simpleResponse :: String -> Response
-simpleResponse text = Response {
+simpleResponse :: RequestHandler
+simpleResponse req groups = Response {
         httpVersion = "1.1",
         statusCode = 200,
         responseHeaders = Map.empty,
-        responseBody = Just text }
+        responseBody = Just $ concat groups }
