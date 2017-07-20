@@ -1,13 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Server(
-    runServer,
-    HandlerChain(..),
-    RequestHandler(..),
-    get,
-    post
-    )
-where
+module Server
+    ( runServer
+    , HandlerChain(..)
+    , RequestHandler(..)
+    , get
+    , post
+    ) where
 
 import Control.Monad (when)
 import Control.Monad.IO.Class

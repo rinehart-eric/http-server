@@ -2,6 +2,7 @@ module Main
 where
 
 import Data.ByteString.Char8 (pack)
+import Data.List (intercalate)
 import Data.Map as Map
 import Http.Request
 import Http.Response
@@ -20,8 +21,8 @@ main = serverMain
 
 defaultHandler :: HandlerChain
 defaultHandler = [
-        get "\\/(\\w+)" simpleResponse,
-        get "\\/(\\w+)\\/(\\d+)" simpleResponse
+        get "/(.+)/(.+)" simpleResponse,
+        get "/(.+)" simpleResponse
         ]
 
 simpleResponse :: RequestHandler
@@ -29,4 +30,7 @@ simpleResponse req groups = Response {
         httpVersion = "1.1",
         statusCode = 200,
         responseHeaders = Map.empty,
-        responseBody = Just $ concat groups }
+        responseBody = Just $ groupString groups }
+
+groupString :: [String] -> String
+groupString xs = "[" ++ intercalate ", " xs ++ "]"
